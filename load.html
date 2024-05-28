@@ -1,0 +1,56 @@
+<!--emu.html?core=psx&url=https://diachigame-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmulatorJS</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        #game {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="game"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // Lấy giá trị của tham số 'core' và 'url'
+            const core = urlParams.get('core') || 'nes'; // Mặc định là 'nes'
+            const gameUrl = urlParams.get('url');
+
+            if (gameUrl) {
+                // Thiết lập các biến của EmulatorJS
+                EJS_player = "#game";
+                EJS_core = core;
+                EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+                EJS_gameUrl = gameUrl;
+                EJS_startOnLoaded = true;
+
+                // Tạo và chèn thẻ script để tải thư viện EmulatorJS
+                const script = document.createElement('script');
+                script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+                script.onload = function() {
+                    console.log('EmulatorJS đã tải thành công.');
+                };
+                script.onerror = function() {
+                    console.error('Không tải được EmulatorJS.');
+                };
+                document.body.appendChild(script);
+            } else {
+                console.error('Tham số "url" không được cung cấp trong URL.');
+            }
+        });
+    </script>
+</body>
+</html>
