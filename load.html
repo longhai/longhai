@@ -42,6 +42,20 @@
                 script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
                 script.onload = function() {
                     console.log('EmulatorJS đã tải thành công.');
+                    
+                    // Kiểm tra và yêu cầu chế độ toàn màn hình
+                    const gameContainer = document.getElementById('game');
+                    if (gameContainer.requestFullscreen) {
+                        gameContainer.requestFullscreen();
+                    } else if (gameContainer.mozRequestFullScreen) { // Firefox
+                        gameContainer.mozRequestFullScreen();
+                    } else if (gameContainer.webkitRequestFullscreen) { // Chrome, Safari và Opera
+                        gameContainer.webkitRequestFullscreen();
+                    } else if (gameContainer.msRequestFullscreen) { // IE/Edge
+                        gameContainer.msRequestFullscreen();
+                    } else {
+                        console.warn('Trình duyệt này không hỗ trợ chế độ toàn màn hình.');
+                    }
                 };
                 script.onerror = function() {
                     console.error('Không tải được EmulatorJS.');
