@@ -1,57 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game List</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        #search-container {
-            position: fixed;
-    top: 0;
-    right: 0;
-    height: 100vh; /* Chiều cao là 100% của viewport */
-    overflow-y: auto; /* Cho phép cuộn khi nội dung vượt quá kích thước */
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    padding-top: 20px; /* Có thể điều chỉnh khoảng cách từ phía trên */
-        }
-		
-        .letter {
-            display: inline-block;
-            margin-right: 10px;
-            cursor: pointer;
-        }
-        #game-list {
-            list-style-type: none;
-            padding: 0;
-        }
-        .game-item {
-            margin-bottom: 20px;
-            cursor: pointer;
-            text-align: center;
-        }
-        .game-item img {
-            width: 150px;
-            height: auto;
-            margin-bottom: 10px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    #search-container {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100vh;
+      /* Chiều cao là 100% của viewport */
+      overflow-y: auto;
+      /* Cho phép cuộn khi nội dung vượt quá kích thước */
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      padding-top: 20px;
+      /* Có thể điều chỉnh khoảng cách từ phía trên */
+    }
+
+    #source-menu {
+      text-align: center;
+    }
+
+    .letter {
+      display: inline-block;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    #game-list {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .game-item {
+      margin-bottom: 20px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .game-item img {
+      width: 150px;
+      height: auto;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
+
 <body>
-    <h1>Game List</h1>
-    <div id="source-menu">
-        <select id="source-select">
-            <option value="nes" data-display-name="Nintendo - Nintendo Entertainment System">Nintendo Entertainment System</option>
-            <option value="snes" data-display-name="Nintendo - Super Nintendo Entertainment System">Super Nintendo Entertainment System</option>
-            <option value="gba" data-display-name="Nintendo - Game Boy Advance">Game Boy Advance</option>
-        </select>
-    </div>
-    <div id="search-container">
-        <span class="letter" data-letter="all">All</span>
+  <h1>Game List</h1>
+  <div id="source-menu">
+    <select id="source-select">
+      <option value="nes" data-display-name="Nintendo - Nintendo Entertainment System">Nintendo Entertainment System</option>
+      <option value="snes" data-display-name="Nintendo - Super Nintendo Entertainment System">Super Nintendo Entertainment System</option>
+      <option value="gba" data-display-name="Nintendo - Game Boy Advance">Game Boy Advance</option>
+    </select>
+  </div>
+  <div id="search-container">
+    <span class="letter" data-letter="all">All</span>
     <span class="letter" data-letter="#">#</span>
     <span class="letter" data-letter="A">A</span>
     <span class="letter" data-letter="B">B</span>
@@ -79,150 +92,136 @@
     <span class="letter" data-letter="X">X</span>
     <span class="letter" data-letter="Y">Y</span>
     <span class="letter" data-letter="Z">Z</span>
-    </div>
-    <ul id="game-list"></ul>
-    <div id="pagination">
-        <button id="prev-btn" disabled>Prev</button>
-        <button id="next-btn">Next</button>
-    </div>
+  </div>
+  <ul id="game-list"></ul>
+  <div id="pagination">
+    <button id="prev-btn" disabled>Prev</button>
+    <button id="next-btn">Next</button>
+  </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const itemsPerPage = 10;
-            const defaultImageUrl = 'https://longhai.github.io/image.png'; // Replace with the default image URL
-            let currentPage = 1;
-            let games = [];
-            let filteredGames = [];
-            let selectedSource = 'nes';
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const itemsPerPage = 10;
+      const defaultImageUrl = 'https://longhai.github.io/image.png'; // Replace with the default image URL
+      let currentPage = 1;
+      let games = [];
+      let filteredGames = [];
+      let selectedSource = 'nes';
+      const sourceSelect = document.getElementById('source-select');
+      sourceSelect.addEventListener('change', function() {
+        selectedSource = this.value;
+        loadXML(selectedSource);
+      });
 
-            const sourceSelect = document.getElementById('source-select');
-            sourceSelect.addEventListener('change', function() {
-                selectedSource = this.value;
-                loadXML(selectedSource);
-            });
-
-            function loadXML(source) {
-                let url;
-                const selectedOption = sourceSelect.options[sourceSelect.selectedIndex];
-                const displayName = selectedOption.getAttribute('data-display-name');
-
-                if (source === 'snes') {
-                    url = 'https://longhai.github.io/dat/Nintendo - Super Nintendo Entertainment System.dat';
-                } else if (source === 'gba') {
-                    url = 'https://longhai.github.io/dat/Nintendo - Game Boy Advance.dat';
-                } else {
-                    url = 'https://longhai.github.io/dat/Nintendo - Nintendo Entertainment System (Headered).dat';
-                }
-
-                fetch(url)
-                    .then(response => response.text())
-                    .then(data => {
-                        const parser = new DOMParser();
-                        const xmlDoc = parser.parseFromString(data, "text/xml");
-                        games = Array.from(xmlDoc.getElementsByTagName('game')).map(game => ({
-                            name: game.getAttribute('name'),
-                            description: game.getElementsByTagName('description')[0]?.textContent || game.getAttribute('name'),
-                            imageUrl: `https://thumbnails.libretro.com/${encodeURIComponent(displayName)}/Named_Titles/${encodeURIComponent(game.getAttribute('name'))}.png`,
-                            snapUrl: `https://thumbnails.libretro.com/${encodeURIComponent(displayName)}/Named_Snaps/${encodeURIComponent(game.getAttribute('name'))}.png`
-                        }));
-                        filteredGames = games;
-                        displayGames(filteredGames, currentPage);
-                    });
-            }
-
-            loadXML(selectedSource);
-
-            const letters = document.querySelectorAll('.letter');
-            letters.forEach(letter => {
-                letter.addEventListener('click', () => {
-                    const selectedLetter = letter.getAttribute('data-letter');
-                    filterGames(selectedLetter);
-                });
-            });
-
-            document.getElementById('next-btn').addEventListener('click', () => {
-                currentPage++;
-                displayGames(filteredGames, currentPage);
-            });
-
-            document.getElementById('prev-btn').addEventListener('click', () => {
-                currentPage--;
-                displayGames(filteredGames, currentPage);
-            });
-
-            function displayGames(games, page) {
-                const gameList = document.getElementById('game-list');
-                const startIndex = (page - 1) * itemsPerPage;
-                const endIndex = page * itemsPerPage;
-                const totalPages = Math.ceil(games.length / itemsPerPage);
-                const prevBtn = document.getElementById('prev-btn');
-                const nextBtn = document.getElementById('next-btn');
-
-                gameList.innerHTML = '';
-                for (let i = startIndex; i < endIndex && i < games.length; i++) {
-                    const li = document.createElement('li');
-                    li.className = 'game-item';
-
-                    const titleImg = document.createElement('img');
-                    titleImg.src = games[i].imageUrl;
-                    titleImg.alt = games[i].description;
-                    titleImg.onerror = function() {
-                        this.onerror = null;
-                        this.src = defaultImageUrl;
-                    };
-
-                    const snapImg = document.createElement('img');
-                    snapImg.src = games[i].snapUrl;
-                    snapImg.alt = games[i].description;
-                    snapImg.onerror = function() {
-                        this.onerror = null;
-                        this.src = defaultImageUrl;
-                    };
-
-                    const description = document.createElement('p');
-                    description.textContent = games[i].description;
-
-                    li.appendChild(titleImg);
-                    li.appendChild(snapImg);
-                    li.appendChild(description);
-                    li.addEventListener('click', () => {
-                        playGame(games[i].name, selectedSource);
-                    });
-                    gameList.appendChild(li);
-                }
-
-                prevBtn.disabled = page === 1;
-                nextBtn.disabled = page === totalPages;
-            }
-
-            function filterGames(letter) {
-                if (letter === 'all') {
-                    filteredGames = games;
-                } else if (letter === '#') {
-                    filteredGames = games.filter(game => /^[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(game.description));
-                } else {
-                    filteredGames = games.filter(game => game.description.toUpperCase().startsWith(letter));
-                }
-                currentPage = 1;
-                displayGames(filteredGames, currentPage);
-            }
-
-            function playGame(gameName, source) {
-                const encodedGameName = encodeURIComponent(gameName);
-                let gameUrl = '';
-
-                if (source === 'snes') {
-                    gameUrl = `https://archive.org/download/ni-roms/roms/Nintendo - Super Nintendo Entertainment System.zip/${encodedGameName}.zip`;
-                } else if (source === 'gba') {
-                    gameUrl = `https://archive.org/download/ni-roms/roms/Nintendo - Game Boy Advance.zip/${encodedGameName}.zip`;
-                } else if (source === 'nes') {
-                    gameUrl = `https://archive.org/download/ni-roms/roms/Nintendo - Nintendo Entertainment System (Headered).zip/${encodedGameName}.zip`;
-                }
-
-                const playUrl = `https://longhai.github.io/load.html?core=${source}&url=${gameUrl}`;
-                window.open(playUrl, '_blank', 'width=800,height=600,resizable=yes,scrollbars=yes');
-            }
+      function loadXML(source) {
+        let url;
+        const selectedOption = sourceSelect.options[sourceSelect.selectedIndex];
+        const displayName = selectedOption.getAttribute('data-display-name');
+        if (source === 'snes') {
+          url = 'https://longhai.github.io/dat/Nintendo - Super Nintendo Entertainment System.dat';
+        } else if (source === 'gba') {
+          url = 'https://longhai.github.io/dat/Nintendo - Game Boy Advance.dat';
+        } else {
+          url = 'https://longhai.github.io/dat/Nintendo - Nintendo Entertainment System (Headered).dat';
+        }
+        fetch(url)
+          .then(response => response.text())
+          .then(data => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(data, "text/xml");
+            games = Array.from(xmlDoc.getElementsByTagName('game')).map(game => ({
+              name: game.getAttribute('name'),
+              description: game.getElementsByTagName('description')[0]?.textContent || game.getAttribute('name'),
+              imageUrl: `https://thumbnails.libretro.com/${encodeURIComponent(displayName)}/Named_Titles/${encodeURIComponent(game.getAttribute('name'))}.png`,
+              snapUrl: `https://thumbnails.libretro.com/${encodeURIComponent(displayName)}/Named_Snaps/${encodeURIComponent(game.getAttribute('name'))}.png`
+            }));
+            filteredGames = games;
+            displayGames(filteredGames, currentPage);
+          });
+      }
+      loadXML(selectedSource);
+      const letters = document.querySelectorAll('.letter');
+      letters.forEach(letter => {
+        letter.addEventListener('click', () => {
+          const selectedLetter = letter.getAttribute('data-letter');
+          filterGames(selectedLetter);
         });
-    </script>
+      });
+      document.getElementById('next-btn').addEventListener('click', () => {
+        currentPage++;
+        displayGames(filteredGames, currentPage);
+      });
+      document.getElementById('prev-btn').addEventListener('click', () => {
+        currentPage--;
+        displayGames(filteredGames, currentPage);
+      });
+
+      function displayGames(games, page) {
+        const gameList = document.getElementById('game-list');
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = page * itemsPerPage;
+        const totalPages = Math.ceil(games.length / itemsPerPage);
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        gameList.innerHTML = '';
+        for (let i = startIndex; i < endIndex && i < games.length; i++) {
+          const li = document.createElement('li');
+          li.className = 'game-item';
+          const titleImg = document.createElement('img');
+          titleImg.src = games[i].imageUrl;
+          titleImg.alt = games[i].description;
+          titleImg.onerror = function() {
+            this.onerror = null;
+            this.src = defaultImageUrl;
+          };
+          const snapImg = document.createElement('img');
+          snapImg.src = games[i].snapUrl;
+          snapImg.alt = games[i].description;
+          snapImg.onerror = function() {
+            this.onerror = null;
+            this.src = defaultImageUrl;
+          };
+          const description = document.createElement('p');
+          description.textContent = games[i].description;
+          li.appendChild(titleImg);
+          li.appendChild(snapImg);
+          li.appendChild(description);
+          li.addEventListener('click', () => {
+            playGame(games[i].name, selectedSource);
+          });
+          gameList.appendChild(li);
+        }
+        prevBtn.disabled = page === 1;
+        nextBtn.disabled = page === totalPages;
+      }
+
+      function filterGames(letter) {
+        if (letter === 'all') {
+          filteredGames = games;
+        } else if (letter === '#') {
+          filteredGames = games.filter(game => /^[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(game.description));
+        } else {
+          filteredGames = games.filter(game => game.description.toUpperCase().startsWith(letter));
+        }
+        currentPage = 1;
+        displayGames(filteredGames, currentPage);
+      }
+
+      function playGame(gameName, source) {
+        const encodedGameName = encodeURIComponent(gameName);
+        let gameUrl = '';
+        if (source === 'snes') {
+          gameUrl = `https://archive.org/download/ni-roms/roms/Nintendo - Super Nintendo Entertainment System.zip/${encodedGameName}.zip`;
+        } else if (source === 'gba') {
+          gameUrl = `https://archive.org/download/ni-roms/roms/Nintendo - Game Boy Advance.zip/${encodedGameName}.zip`;
+        } else if (source === 'nes') {
+          gameUrl = `https://archive.org/download/ni-roms/roms/Nintendo - Nintendo Entertainment System (Headered).zip/${encodedGameName}.zip`;
+        }
+        const playUrl = `https://longhai.github.io/load.html?core=${source}&url=${gameUrl}`;
+        window.open(playUrl, '_blank', 'width=800,height=600,resizable=yes,scrollbars=yes');
+      }
+    });
+  </script>
 </body>
+
 </html>
