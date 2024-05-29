@@ -1,7 +1,6 @@
-<!--emu.html?core=psx&url=https://diachigame-->
-
+<!--https://longhai.github.io/load.html?core=segaMD&url=https://archive.org/download/ni-roms/roms/Sega - Mega Drive - Genesis.zip/Squirrel King (Taiwan) (En) (Unl).zip-->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,48 +21,22 @@
 <body>
     <div id="game"></div>
     <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
+        document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
-
-            // Lấy giá trị của tham số 'core' và 'url'
-            const core = urlParams.get('core') || 'nes'; // Mặc định là 'nes'
+            const core = urlParams.get('core') || 'nes';
             const gameUrl = urlParams.get('url');
+			const script = document.createElement('script');
 
             if (gameUrl) {
-                // Thiết lập các biến của EmulatorJS
                 EJS_player = "#game";
                 EJS_core = core;
                 EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
                 EJS_gameUrl = gameUrl;
                 EJS_startOnLoaded = true;
 
-                // Tạo và chèn thẻ script để tải thư viện EmulatorJS
-                const script = document.createElement('script');
                 script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
-                script.onload = function() {
-                    console.log('EmulatorJS đã tải thành công.');
-                    
-                    // Kiểm tra và yêu cầu chế độ toàn màn hình
-                    const gameContainer = document.getElementById('game');
-                    if (gameContainer.requestFullscreen) {
-                        gameContainer.requestFullscreen();
-                    } else if (gameContainer.mozRequestFullScreen) { // Firefox
-                        gameContainer.mozRequestFullScreen();
-                    } else if (gameContainer.webkitRequestFullscreen) { // Chrome, Safari và Opera
-                        gameContainer.webkitRequestFullscreen();
-                    } else if (gameContainer.msRequestFullscreen) { // IE/Edge
-                        gameContainer.msRequestFullscreen();
-                    } else {
-                        console.warn('Trình duyệt này không hỗ trợ chế độ toàn màn hình.');
-                    }
-                };
-                script.onerror = function() {
-                    console.error('Không tải được EmulatorJS.');
-                };
                 document.body.appendChild(script);
-            } else {
-                console.error('Tham số "url" không được cung cấp trong URL.');
-            }
+            } 
         });
     </script>
 </body>
