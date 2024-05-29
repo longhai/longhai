@@ -178,7 +178,7 @@
                 if (letter === 'all') {
                     filteredGames = games;
                 } else if (letter === '0-9') {
-                    filteredGames = games.filter(game => /^[0-9]/.test(game.description));
+                    filteredGames = games.filter(game => /^[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(game.description));
                 } else {
                     filteredGames = games.filter(game => game.description.toUpperCase().startsWith(letter));
                 }
