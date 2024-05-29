@@ -9,8 +9,17 @@
             font-family: Arial, sans-serif;
         }
         #search-container {
-            margin-bottom: 20px;
+            position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh; /* Chiều cao là 100% của viewport */
+    overflow-y: auto; /* Cho phép cuộn khi nội dung vượt quá kích thước */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding-top: 20px; /* Có thể điều chỉnh khoảng cách từ phía trên */
         }
+		
         .letter {
             display: inline-block;
             margin-right: 10px;
@@ -21,15 +30,14 @@
             padding: 0;
         }
         .game-item {
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             cursor: pointer;
-        }
-        #pagination {
-            margin-top: 20px;
+            text-align: center;
         }
         .game-item img {
             width: 150px;
             height: auto;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -44,7 +52,7 @@
     </div>
     <div id="search-container">
         <span class="letter" data-letter="all">All</span>
-    <span class="letter" data-letter="0-9">0-9</span>
+    <span class="letter" data-letter="#">#</span>
     <span class="letter" data-letter="A">A</span>
     <span class="letter" data-letter="B">B</span>
     <span class="letter" data-letter="C">C</span>
@@ -114,7 +122,8 @@
                         games = Array.from(xmlDoc.getElementsByTagName('game')).map(game => ({
                             name: game.getAttribute('name'),
                             description: game.getElementsByTagName('description')[0]?.textContent || game.getAttribute('name'),
-                            imageUrl: `https://thumbnails.libretro.com/${encodeURIComponent(displayName)}/Named_Titles/${encodeURIComponent(game.getAttribute('name'))}.png`
+                            imageUrl: `https://thumbnails.libretro.com/${encodeURIComponent(displayName)}/Named_Titles/${encodeURIComponent(game.getAttribute('name'))}.png`,
+                            snapUrl: `https://thumbnails.libretro.com/${encodeURIComponent(displayName)}/Named_Snaps/${encodeURIComponent(game.getAttribute('name'))}.png`
                         }));
                         filteredGames = games;
                         displayGames(filteredGames, currentPage);
@@ -153,17 +162,29 @@
                 for (let i = startIndex; i < endIndex && i < games.length; i++) {
                     const li = document.createElement('li');
                     li.className = 'game-item';
-                    
-                    const img = document.createElement('img');
-                    img.src = games[i].imageUrl;
-                    img.alt = games[i].description;
-                    img.onerror = function() {
+
+                    const titleImg = document.createElement('img');
+                    titleImg.src = games[i].imageUrl;
+                    titleImg.alt = games[i].description;
+                    titleImg.onerror = function() {
                         this.onerror = null;
                         this.src = defaultImageUrl;
                     };
 
-                    li.appendChild(img);
-                    li.appendChild(document.createTextNode(games[i].description));
+                    const snapImg = document.createElement('img');
+                    snapImg.src = games[i].snapUrl;
+                    snapImg.alt = games[i].description;
+                    snapImg.onerror = function() {
+                        this.onerror = null;
+                        this.src = defaultImageUrl;
+                    };
+
+                    const description = document.createElement('p');
+                    description.textContent = games[i].description;
+
+                    li.appendChild(titleImg);
+                    li.appendChild(snapImg);
+                    li.appendChild(description);
                     li.addEventListener('click', () => {
                         playGame(games[i].name, selectedSource);
                     });
@@ -177,7 +198,7 @@
             function filterGames(letter) {
                 if (letter === 'all') {
                     filteredGames = games;
-                } else if (letter === '0-9') {
+                } else if (letter === '#') {
                     filteredGames = games.filter(game => /^[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(game.description));
                 } else {
                     filteredGames = games.filter(game => game.description.toUpperCase().startsWith(letter));
