@@ -8,21 +8,32 @@
   <style>
     body {
       font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
     }
 
-    #search-container {
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: #fff;
+      z-index: 999;
+      padding: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      height: 20px;
+    }
+
+    #pagelist {
       position: fixed;
       top: 0;
       right: 0;
       height: 100vh;
-      /* Chiều cao là 100% của viewport */
       overflow-y: auto;
-      /* Cho phép cuộn khi nội dung vượt quá kích thước */
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      padding-top: 20px;
-      /* Có thể điều chỉnh khoảng cách từ phía trên */
+      padding-top: 45px;
+      align-items: center;
     }
 
     #source-menu {
@@ -38,6 +49,7 @@
     #game-list {
       list-style-type: none;
       padding: 0;
+      margin-top: 50px
     }
 
     .game-item {
@@ -51,48 +63,43 @@
       height: auto;
       margin-bottom: 10px;
     }
+
+    #search-container {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    #source-menu,
+    #search-container {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: white;
+      /* Có thể điều chỉnh màu nền theo ý muốn */
+      z-index: 999;
+      /* Đảm bảo các phần tử này hiển thị phía trên các phần tử khác */
+    }
+
+    #pagination {
+      text-align: center;
+    }
   </style>
 </head>
 
 <body>
-  <h1>Game List</h1>
-  <div id="source-menu">
-    <select id="source-select">
-      <option value="nes" data-display-name="Nintendo - Nintendo Entertainment System">Nintendo Entertainment System</option>
-      <option value="snes" data-display-name="Nintendo - Super Nintendo Entertainment System">Super Nintendo Entertainment System</option>
-      <option value="gba" data-display-name="Nintendo - Game Boy Advance">Game Boy Advance</option>
-    </select>
-  </div>
-  <div id="search-container">
-    <span class="letter" data-letter="all">All</span>
-    <span class="letter" data-letter="#">#</span>
-    <span class="letter" data-letter="A">A</span>
-    <span class="letter" data-letter="B">B</span>
-    <span class="letter" data-letter="C">C</span>
-    <span class="letter" data-letter="D">D</span>
-    <span class="letter" data-letter="E">E</span>
-    <span class="letter" data-letter="F">F</span>
-    <span class="letter" data-letter="G">G</span>
-    <span class="letter" data-letter="H">H</span>
-    <span class="letter" data-letter="I">I</span>
-    <span class="letter" data-letter="J">J</span>
-    <span class="letter" data-letter="K">K</span>
-    <span class="letter" data-letter="L">L</span>
-    <span class="letter" data-letter="M">M</span>
-    <span class="letter" data-letter="N">N</span>
-    <span class="letter" data-letter="O">O</span>
-    <span class="letter" data-letter="P">P</span>
-    <span class="letter" data-letter="Q">Q</span>
-    <span class="letter" data-letter="R">R</span>
-    <span class="letter" data-letter="S">S</span>
-    <span class="letter" data-letter="T">T</span>
-    <span class="letter" data-letter="U">U</span>
-    <span class="letter" data-letter="V">V</span>
-    <span class="letter" data-letter="W">W</span>
-    <span class="letter" data-letter="X">X</span>
-    <span class="letter" data-letter="Y">Y</span>
-    <span class="letter" data-letter="Z">Z</span>
-  </div>
+  <header>
+    <div id="source-menu">
+      <select id="source-select">
+        <option value="nes" data-display-name="Nintendo - Nintendo Entertainment System">Nintendo Entertainment System</option>
+        <option value="snes" data-display-name="Nintendo - Super Nintendo Entertainment System">Super Nintendo Entertainment System</option>
+        <option value="gba" data-display-name="Nintendo - Game Boy Advance">Game Boy Advance</option>
+      </select>
+    </div>
+    <div id="search-container">
+      <input type="text" id="search-input" placeholder="Search...">
+    </div>
+  </header>
+  <div id="pagelist"></div>
   <ul id="game-list"></ul>
   <div id="pagination">
     <button id="prev-btn" disabled>Prev</button>
@@ -101,8 +108,8 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      const itemsPerPage = 10;
-      const defaultImageUrl = 'https://longhai.github.io/image.png'; // Replace with the default image URL
+      const itemsPerPage = 20;
+      const defaultImageUrl = 'https://longhai.github.io/image.png';
       let currentPage = 1;
       let games = [];
       let filteredGames = [];
@@ -132,7 +139,7 @@
             games = Array.from(xmlDoc.getElementsByTagName('game')).map(game => ({
               name: game.getAttribute('name'),
               description: game.getElementsByTagName('description')[0]?.textContent || game.getAttribute('name'),
-              imageUrl: `https://thumbnails.libretro.com/${encodeURIComponent(displayName)}/Named_Titles/${encodeURIComponent(game.getAttribute('name'))}.png`,
+              titleUrl: `https://thumbnails.libretro.com/${encodeURIComponent(displayName)}/Named_Titles/${encodeURIComponent(game.getAttribute('name'))}.png`,
               snapUrl: `https://thumbnails.libretro.com/${encodeURIComponent(displayName)}/Named_Snaps/${encodeURIComponent(game.getAttribute('name'))}.png`
             }));
             filteredGames = games;
@@ -140,12 +147,22 @@
           });
       }
       loadXML(selectedSource);
-      const letters = document.querySelectorAll('.letter');
+      const searchInput = document.getElementById('search-input');
+      searchInput.addEventListener('input', () => {
+        const searchKeyword = searchInput.value.trim().toUpperCase();
+        filteredGames = games.filter(game => game.description.toUpperCase().includes(searchKeyword));
+        currentPage = 1;
+        displayGames(filteredGames, currentPage);
+      });
+      const searchContainer = document.getElementById('pagelist');
+      const letters = ['All', '#', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
       letters.forEach(letter => {
-        letter.addEventListener('click', () => {
-          const selectedLetter = letter.getAttribute('data-letter');
-          filterGames(selectedLetter);
-        });
+        const span = document.createElement('span');
+        span.className = 'letter';
+        span.dataset.letter = letter;
+        span.textContent = letter;
+        span.addEventListener('click', () => filterGames(letter));
+        searchContainer.appendChild(span);
       });
       document.getElementById('next-btn').addEventListener('click', () => {
         currentPage++;
@@ -168,7 +185,7 @@
           const li = document.createElement('li');
           li.className = 'game-item';
           const titleImg = document.createElement('img');
-          titleImg.src = games[i].imageUrl;
+          titleImg.src = games[i].titleUrl;
           titleImg.alt = games[i].description;
           titleImg.onerror = function() {
             this.onerror = null;
@@ -186,9 +203,7 @@
           li.appendChild(titleImg);
           li.appendChild(snapImg);
           li.appendChild(description);
-          li.addEventListener('click', () => {
-            playGame(games[i].name, selectedSource);
-          });
+          li.addEventListener('click', () => playGame(games[i].name, selectedSource));
           gameList.appendChild(li);
         }
         prevBtn.disabled = page === 1;
@@ -196,7 +211,7 @@
       }
 
       function filterGames(letter) {
-        if (letter === 'all') {
+        if (letter === 'All') {
           filteredGames = games;
         } else if (letter === '#') {
           filteredGames = games.filter(game => /^[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(game.description));
