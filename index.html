@@ -147,7 +147,12 @@
         <option value="nes" data-display-name="Nintendo - Nintendo Entertainment System">Nintendo Entertainment System</option>
         <option value="snes" data-display-name="Nintendo - Super Nintendo Entertainment System">Super Nintendo Entertainment System</option>
         <option value="gba" data-display-name="Nintendo - Game Boy Advance">Game Boy Advance</option>
+        <option value="segaMD" data-display-name="Sega - Mega Drive - Genesis">Sega Mega Drive/Genesis</option>
+        <option value="ws" data-display-name="Bandai - WonderSwan Color">WonderSwan Color</option>
+        <option value="pce" data-display-name="NEC - PC Engine - TurboGrafx 16">NEC PC Engine/TurboGrafx-16</option>
+        <option value="psx" data-display-name="Sony - PlayStation">Sony PlayStation</option>
       </select>
+
     </div>
     <div id="search-container">
       <input type="text" id="search-input" placeholder="Search...">
@@ -162,7 +167,7 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      const itemsPerPage = 20;
+      const itemsPerPage = 50;
       const defaultImageUrl = 'https://longhai.github.io/image.png';
       let currentPage = 1;
       let games = [];
@@ -182,6 +187,14 @@
           url = 'https://longhai.github.io/dat/Nintendo - Super Nintendo Entertainment System.dat';
         } else if (source === 'gba') {
           url = 'https://longhai.github.io/dat/Nintendo - Game Boy Advance.dat';
+        } else if (source === 'segaMD') {
+          url = 'https://longhai.github.io/dat/Sega - Mega Drive - Genesis.dat';
+        } else if (source === 'ws') {
+          url = 'https://longhai.github.io/dat/Bandai - WonderSwan Color.dat';
+        } else if (source === 'pce') {
+          url = 'https://longhai.github.io/dat/NEC - PC Engine - TurboGrafx-16.dat';
+        } else if (source === 'psx') {
+          url = 'https://longhai.github.io/dat/Sony - PlayStation.dat';
         } else {
           url = 'https://longhai.github.io/dat/Nintendo - Nintendo Entertainment System (Headered).dat';
         }
@@ -283,6 +296,14 @@
           gameUrl = `https://archive.org/download/ni-roms/roms/Nintendo - Super Nintendo Entertainment System.zip/${encodedGameName}.zip`;
         } else if (source === 'gba') {
           gameUrl = `https://archive.org/download/ni-roms/roms/Nintendo - Game Boy Advance.zip/${encodedGameName}.zip`;
+        } else if (source === 'segaMD') {
+          gameUrl = `https://archive.org/download/ni-roms/roms/Sega - Mega Drive - Genesis.zip/${encodedGameName}.zip`;
+        } else if (source === 'ws') {
+          gameUrl = `https://archive.org/download/ni-roms/roms/Bandai - WonderSwan Color.zip/${encodedGameName}.zip`;
+        } else if (source === 'pce') {
+          gameUrl = `https://archive.org/download/ni-roms/roms/NEC - PC Engine - TurboGrafx-16.zip/${encodedGameName}.zip`;
+        } else if (source === 'psx') {
+          gameUrl = `https://myrient.erista.me/files/Redump/Sony - PlayStation/${encodedGameName}.zip`;
         } else if (source === 'nes') {
           gameUrl = `https://archive.org/download/ni-roms/roms/Nintendo - Nintendo Entertainment System (Headered).zip/${encodedGameName}.zip`;
         }
