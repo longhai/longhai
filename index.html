@@ -146,8 +146,8 @@
       <select id="source-select">
         <option value="nes" data-display-name="Nintendo - Nintendo Entertainment System">Nintendo Entertainment System</option>
         <option value="snes" data-display-name="Nintendo - Super Nintendo Entertainment System">Super Nintendo Entertainment System</option>
-        <option value="gba" data-display-name="Nintendo - Game Boy Advance">Game Boy Advance</option>
         <option value="segaMD" data-display-name="Sega - Mega Drive - Genesis">Sega Mega Drive/Genesis</option>
+        <option value="gba" data-display-name="Nintendo - Game Boy Advance">Game Boy Advance</option>
         <option value="ws" data-display-name="Bandai - WonderSwan Color">WonderSwan Color</option>
         <option value="pce" data-display-name="NEC - PC Engine - TurboGrafx 16">NEC PC Engine/TurboGrafx-16</option>
         <option value="psx" data-display-name="Sony - PlayStation">Sony PlayStation</option>
@@ -162,6 +162,8 @@
   <ul id="game-list"></ul>
   <div id="pagination">
     <button id="prev-btn" disabled>Prev</button>
+    <span id="page-indicator"></span>
+    <span id="game-count"></span>
     <button id="next-btn">Next</button>
   </div>
 
@@ -209,6 +211,12 @@
               titleUrl: `https://thumbnails.libretro.com/${encodeURIComponent(displayName)}/Named_Titles/${encodeURIComponent(game.getAttribute('name'))}.png`,
               snapUrl: `https://thumbnails.libretro.com/${encodeURIComponent(displayName)}/Named_Snaps/${encodeURIComponent(game.getAttribute('name'))}.png`
             }));
+            // Từ khóa cần lọc
+            const keywordsToHide = ["bios", "test", "in-1", "demo", "beta"];
+            // Lọc ra những trò chơi không chứa các từ khóa cần ẩn
+            games = games.filter(game =>
+              !keywordsToHide.some(keyword => game.name.toLowerCase().includes(keyword))
+            );
             filteredGames = games;
             displayGames(filteredGames, currentPage);
           });
@@ -247,6 +255,8 @@
         const totalPages = Math.ceil(games.length / itemsPerPage);
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
+        const pageIndicator = document.getElementById('page-indicator');
+        const gameCount = document.getElementById('game-count');
         gameList.innerHTML = '';
         for (let i = startIndex; i < endIndex && i < games.length; i++) {
           const li = document.createElement('li');
@@ -275,6 +285,12 @@
         }
         prevBtn.disabled = page === 1;
         nextBtn.disabled = page === totalPages;
+        pageIndicator.textContent = `${page} of ${totalPages}`;
+        gameCount.textContent = `(${games.length})`;
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
       }
 
       function filterGames(letter) {
@@ -303,7 +319,13 @@
         } else if (source === 'pce') {
           gameUrl = `https://archive.org/download/ni-roms/roms/NEC - PC Engine - TurboGrafx-16.zip/${encodedGameName}.zip`;
         } else if (source === 'psx') {
-          gameUrl = `https://myrient.erista.me/files/Redump/Sony - PlayStation/${encodedGameName}.zip`;
+          if (gameName.includes('(Japan)')) {
+            gameUrl = `https://ia801905.us.archive.org/cors_get.php?path=/10/items/chd_psx_jap/CHD-PSX-JAP/${encodedGameName}.chd`;
+          } else if (gameName.includes('(USA)')) {
+            gameUrl = `https://ia801905.us.archive.org/cors_get.php?path=/10/items/chd_psx/CHD-PSX-USA/${encodedGameName}.chd`;
+          } else if (gameName.includes('(Europe)')) {
+            gameUrl = `https://ia801905.us.archive.org/cors_get.php?path=/10/items/chd_psx_eur/CHD-PSX-EUR/${encodedGameName}.chd`;
+          }
         } else if (source === 'nes') {
           gameUrl = `https://archive.org/download/ni-roms/roms/Nintendo - Nintendo Entertainment System (Headered).zip/${encodedGameName}.zip`;
         }
