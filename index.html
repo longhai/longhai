@@ -221,9 +221,9 @@
             const uniqueGames = {};
             games.forEach(game => {
                 const baseName = game.name.replace(/\s*\(.*?\)/g, '').toLowerCase();
-                const region = game.name.toLowerCase().includes('(usa)') ? 2 : 
+                const region = game.name.toLowerCase().includes('(USA)') ? 2 : 
                                game.name.toLowerCase().includes('(Europa)') ? 1 : 
-                               game.name.toLowerCase().includes('(japan)') ? 0 : -1;
+                               game.name.toLowerCase().includes('(Japan)') ? 0 : -1;
                 const revisionMatch = game.name.toLowerCase().match(/Rev\s*([A-Za-z]|\d+)/i);
                 const revision = revisionMatch ? revisionMatch[1] : '';
                 if (!(baseName in uniqueGames) || 
