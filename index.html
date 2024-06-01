@@ -211,16 +211,38 @@
               titleUrl: `https://thumbnails.libretro.com/${encodeURIComponent(displayName)}/Named_Titles/${encodeURIComponent(game.getAttribute('name'))}.png`,
               snapUrl: `https://thumbnails.libretro.com/${encodeURIComponent(displayName)}/Named_Snaps/${encodeURIComponent(game.getAttribute('name'))}.png`
             }));
-            // Từ khóa cần lọc
+			// Từ khóa cần lọc
             const keywordsToHide = ["bios", "test", "in-1", "demo", "beta"];
-            // Lọc ra những trò chơi không chứa các từ khóa cần ẩn
-            games = games.filter(game =>
-              !keywordsToHide.some(keyword => game.name.toLowerCase().includes(keyword))
+			// Lọc ra những trò chơi không chứa các từ khóa cần ẩn
+            games = games.filter(game => 
+                !keywordsToHide.some(keyword => game.name.toLowerCase().includes(keyword))
             );
-            filteredGames = games;
+			// Loại bỏ các trò chơi trùng tên và ưu tiên Europa, USA, Japan
+            const uniqueGames = {};
+            games.forEach(game => {
+                const baseName = game.name.replace(/\s*\(.*?\)/g, '').toLowerCase();
+                const region = game.name.toLowerCase().includes('(usa)') ? 2 : 
+                               game.name.toLowerCase().includes('(Europa)') ? 1 : 
+                               game.name.toLowerCase().includes('(japan)') ? 0 : -1;
+                const revisionMatch = game.name.toLowerCase().match(/Rev\s*([A-Za-z]|\d+)/i);
+                const revision = revisionMatch ? revisionMatch[1] : '';
+                if (!(baseName in uniqueGames) || 
+                    region > uniqueGames[baseName].region ||
+                    (region === uniqueGames[baseName].region && revision > uniqueGames[baseName].revision)) {
+                    uniqueGames[baseName] = { ...game, region, revision };
+                }
+            });
+            games = Object.values(uniqueGames).map(game => ({
+                name: game.name,
+                description: game.description,
+                titleUrl: game.titleUrl,
+                snapUrl: game.snapUrl
+            }));
+			filteredGames = games;
             displayGames(filteredGames, currentPage);
           });
       }
+	  
       loadXML(selectedSource);
       const searchInput = document.getElementById('search-input');
       searchInput.addEventListener('input', () => {
