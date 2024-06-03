@@ -213,7 +213,34 @@
             games = games.filter(game =>
               !keywordsToHide.some(keyword => game.name.toLowerCase().includes(keyword))
             );
-
+            // Loại bỏ các trò chơi trùng tên và ưu tiên Europa, USA, Japan
+            const uniqueGames = {};
+            games.forEach(game => {
+              const baseName = game.name.replace(/\s*\(.*?\)/g, '').toLowerCase();
+              const regionPriority = {
+                'europa': 1,
+                'usa': 2,
+                'japan': 3
+              };
+              const regionMatch = game.name.toLowerCase().match(/\((europa|usa|japan)\)/);
+              const region = regionMatch ? regionPriority[regionMatch[1]] : 0;
+              const revisionMatch = game.name.match(/Rev\s*([A-Za-z]|\d+)/i);
+              const revision = revisionMatch ? revisionMatch[1] : '';
+              if (!(baseName in uniqueGames) || region < uniqueGames[baseName].region ||
+                (region === uniqueGames[baseName].region && revision > uniqueGames[baseName].revision)) {
+                uniqueGames[baseName] = {
+                  ...game,
+                  region,
+                  revision
+                };
+              }
+            });
+            games = Object.values(uniqueGames).map(game => ({
+              name: game.name,
+              description: game.description,
+              titleUrl: game.titleUrl,
+              snapUrl: game.snapUrl
+            }));
             filteredGames = games;
             displayGames(filteredGames, currentPage);
           });
